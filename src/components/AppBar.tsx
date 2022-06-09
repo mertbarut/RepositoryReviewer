@@ -2,6 +2,14 @@ import { View, Text, StyleSheet } from 'react-native';
 import Constants from 'expo-constants';
 import AppBarTab from './AppBarTab';
 
+const AppBar = () => {
+  return (
+    <View style={styles.container}>
+      <AppBarTab />
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     paddingTop: Constants.statusBarHeight,
@@ -11,13 +19,5 @@ const styles = StyleSheet.create({
     color: '#ffffff'
   }
 });
-
-const AppBar = () => {
-  return (
-    <View style={styles.container}>
-      <AppBarTab />
-    </View>
-  );
-};
 
 export default AppBar;

@@ -1,7 +1,15 @@
-import Constants from 'expo-constants';
 import { Text, StyleSheet, View } from 'react-native';
 import RepositoryList from './Repositories';
-import AppBar from './AppBar';
+
+import { HomeScreenProps } from './HomeScreen'
+
+const Main = ({ route, navigation }: HomeScreenProps) => {
+  return (
+    <View style={styles.container}>
+      <RepositoryList navigation={navigation} route={route} />
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -9,14 +17,5 @@ const styles = StyleSheet.create({
     flexShrink: 1
   }
 });
-
-const Main = () => {
-  return (
-    <View style={styles.container}>
-      <AppBar />
-      <RepositoryList />
-    </View>
-  );
-};
 
 export default Main;

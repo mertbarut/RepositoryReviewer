@@ -1,80 +1,9 @@
 import React from 'react';
-import { FlatList, View, StyleSheet, Text, SafeAreaView, Image } from 'react-native';
-
-const styles = StyleSheet.create({
-  separator: {
-    height: 10,
-    backgroundColor: '#6495ED'
-  },
-  container: {
-    flexDirection: "column",
-  },
-  containerTop: {
-    flex: 1,
-    flexDirection: "row",
-    minHeight: 120,
-    padding: 20,
-  },
-  containerBottom: {
-    flex: 1,
-    flexDirection: "row",
-    height: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 5
-  },
-  name: {
-    paddingTop: 4,
-    fontWeight: 'bold',
-    flexWrap: 'wrap'
-  },
-  containerName: {
-    flexDirection: 'row',
-    flex: 1,
-    minWidth: 100,
-    paddingBottom: 2,
-    flexWrap: 'wrap'
-  },
-  containerDescription: {
-    flexDirection: 'row',
-    flex: 1,
-    minWidth: 300,
-    paddingBottom: 2,
-    flexWrap: 'wrap'
-  },
-  containerStat: {
-    flex: 1,
-    textAlign: 'center'
-  },
-  description: {
-    paddingBottom: 4,
-    fontWeight: 'normal',
-    flex: 1,
-    flexWrap: 'wrap',
-    color: '#666666'
-  },
-  containerLanguage: {
-    backgroundColor: '#4C4CFF',
-    borderRadius: 10,
-    maxWidth: 100,
-    alignItems: 'center'
-  },
-  language: {
-    paddingVertical: 2,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  textHeaderStat : {
-    fontWeight: 'bold'
-  },
-  textBodyStat : {
-    fontWeight: 'normal'
-  }
-});
+import { FlatList, View, StyleSheet, Text, SafeAreaView, Image, Button, NativeTouchEvent, NativeSyntheticEvent } from 'react-native';
+import Stat from './Stat';
+import { HomeScreenProps } from './HomeScreen'
+import { RootStackParamList } from '../../App';
+import { RouteProp } from '@react-navigation/native';
 
 export interface Repository {
   id: string,
@@ -136,30 +65,14 @@ const repositories: Array<Repository> = [
 ];
 
 export interface ItemProps {
-  item: Repository
-}
-
-export interface StatProps {
-  header: string,
-  stat: number
+  item: Repository,
+  navigation: any,
+  route: RouteProp<RootStackParamList, "Home">,
 }
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-const Stat = ( {header, stat} : StatProps ) => {
-  return(
-    <View style={styles.containerStat}>
-      <Text style={styles.textHeaderStat}>
-        {header}
-      </Text>
-      <Text style={styles.textBodyStat}>
-        {stat > 999 ? Math.round(stat / 1000).toString() + '.' + Math.round(stat / 100).toString().slice(-1) + 'k' : stat}
-      </Text>
-    </View>
-  )
-}
-
-const Item = ( {item} : ItemProps ) => {
+const Item = ( {item, navigation, route} : ItemProps ) => {
   return(
   <View style={styles.container}>
     <View style={styles.containerTop}>
@@ -179,13 +92,21 @@ const Item = ( {item} : ItemProps ) => {
       <Stat header='Reviews' stat={item.reviewCount}/>
       <Stat header='Rating' stat={item.ratingAverage}/>
     </View>
+    <View style={styles.containerButton}>
+      <Button
+        title='Show Details'
+        onPress={() => navigation.navigate('RepositoryDetails', {
+          item: item
+        })}
+      />
+    </View>
   </View>
   )
 };
 
-const RepositoryList = () => {
+const RepositoryList = ({ route, navigation }: HomeScreenProps ) => {
   const renderItem = ( {item} : ItemProps ) => (
-    <Item item={item}/>
+    <Item item={item} route={route} navigation={navigation}/>
   );
 
   return (
@@ -195,9 +116,91 @@ const RepositoryList = () => {
         ItemSeparatorComponent={ItemSeparator}
         renderItem={renderItem}
         keyExtractor={item => item.id}
+        extraData={navigation}
       />      
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+  separator: {
+    height: 10,
+    backgroundColor: '#6495ED'
+  },
+  container: {
+    flexDirection: "column",
+  },
+  containerTop: {
+    flex: 1,
+    flexDirection: "row",
+    minHeight: 120,
+    padding: 20,
+  },
+  containerBottom: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: 'center',
+    height: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20
+  },
+  containerButton: {
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    paddingBottom: 10,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 5
+  },
+  name: {
+    paddingTop: 4,
+    fontWeight: 'bold',
+    flexWrap: 'wrap'
+  },
+  containerName: {
+    flexDirection: 'row',
+    flex: 1,
+    minWidth: 100,
+    paddingBottom: 2,
+    flexWrap: 'wrap'
+  },
+  containerDescription: {
+    flexDirection: 'row',
+    flex: 1,
+    minWidth: 300,
+    paddingBottom: 2,
+    flexWrap: 'wrap'
+  },
+  containerStat: {
+    flex: 1,
+    textAlign: 'center'
+  },
+  description: {
+    paddingBottom: 4,
+    fontWeight: 'normal',
+    flex: 1,
+    flexWrap: 'wrap',
+    color: '#666666'
+  },
+  containerLanguage: {
+    backgroundColor: '#4C4CFF',
+    borderRadius: 10,
+    maxWidth: 100,
+    alignItems: 'center'
+  },
+  language: {
+    paddingVertical: 2,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  textHeaderStat : {
+    fontWeight: 'bold'
+  },
+  textBodyStat : {
+    fontWeight: 'normal'
+  }
+});
 
 export default RepositoryList;
