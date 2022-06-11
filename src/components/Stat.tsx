@@ -65,7 +65,8 @@ const styles = StyleSheet.create({
   },
   containerStat: {
     flex: 1,
-    textAlign: 'center'
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   description: {
     paddingBottom: 4,

@@ -21,12 +21,9 @@ const DetailedStat = ( {header, stat} : DetailedStatProps ) => {
 const styles = StyleSheet.create({
   containerStat: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    paddingVertical: 20,
-    maxHeight: 150,
-    minWidth: 100
+    justifyContent: 'center',
+    minWidth: 80
   },
   textHeaderStat : {
     fontWeight: 'bold',

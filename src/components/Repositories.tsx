@@ -5,119 +5,184 @@ import { HomeScreenProps } from './HomeScreen'
 import { RootStackParamList } from '../../App';
 import { RouteProp } from '@react-navigation/native';
 
-export interface Repository {
-  id: string,
-  fullName: string,
-  description: string,
-  language: string,
-  forksCount: number,
-  stargazersCount: number,
-  ratingAverage: number,
-  reviewCount: number,
-  ownerAvatarUrl: string
+import { gql, useQuery } from '@apollo/client'
+
+import { useDispatch, useSelector } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import { actionCreators, State } from '../state'
+
+export const ALL_REPOSITORIES = gql`
+query {
+  user(login: "mertbarut") {
+    login
+    avatarUrl
+    bio
+    name
+    repositories(first: 100, orderBy: {field: CREATED_AT, direction: DESC}) {
+      nodes {
+        description
+        id
+        name
+        url
+        stargazerCount
+        forks {
+          totalCount
+        }
+        languages(first: 1) {
+          nodes {
+            name
+            color
+          }
+        }
+      }
+    }
+  }
+}
+`
+
+type Fork = {
+  totalCount: number
 }
 
-const repositories: Array<Repository> = [
-  {
-    id: 'jaredpalmer.formik',
-    fullName: 'jaredpalmer/formik',
-    description: 'Build forms in React, without the tears',
-    language: 'TypeScript',
-    forksCount: 1589,
-    stargazersCount: 21553,
-    ratingAverage: 88,
-    reviewCount: 4,
-    ownerAvatarUrl: 'https://avatars2.githubusercontent.com/u/4060187?v=4',
-  },
-  {
-    id: 'rails.rails',
-    fullName: 'rails/rails',
-    description: 'Ruby on Rails',
-    language: 'Ruby',
-    forksCount: 18349,
-    stargazersCount: 45377,
-    ratingAverage: 100,
-    reviewCount: 2,
-    ownerAvatarUrl: 'https://avatars1.githubusercontent.com/u/4223?v=4',
-  },
-  {
-    id: 'django.django',
-    fullName: 'django/django',
-    description: 'The Web framework for perfectionists with deadlines.',
-    language: 'Python',
-    forksCount: 21015,
-    stargazersCount: 48496,
-    ratingAverage: 73,
-    reviewCount: 5,
-    ownerAvatarUrl: 'https://avatars2.githubusercontent.com/u/27804?v=4',
-  },
-  {
-    id: 'reduxjs.redux',
-    fullName: 'reduxjs/redux',
-    description: 'Predictable state container for JavaScript apps',
-    language: 'TypeScript',
-    forksCount: 13902,
-    stargazersCount: 52869,
-    ratingAverage: 0,
-    reviewCount: 0,
-    ownerAvatarUrl: 'https://avatars3.githubusercontent.com/u/13142323?v=4',
-  },
-];
+type Language = {
+  name: string,
+  color: string
+}
+
+type LanguageNode = {
+  nodes: Array<Language>
+}
+
+export type User = {
+  avatarUrl: string,
+  bio: string,
+  name: string,
+  login: string,
+  repositories: Array<RepositoryNode>
+}
+
+export type RepositoryNode = {
+  description: string,
+  id: string,
+  name: string,
+  url: string,
+  stargazerCount: number,
+  forks: Fork,
+  languages: LanguageNode
+}
 
 export interface ItemProps {
-  item: Repository,
+  item: RepositoryNode,
+  user: User,
+  index: number,
   navigation: any,
   route: RouteProp<RootStackParamList, "Home">,
 }
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-const Item = ( {item, navigation, route} : ItemProps ) => {
+const Item = ( {item, user, index, navigation, route} : ItemProps ) => {
+  const dispatch = useDispatch()
+  const currentPage = useSelector((state: State) => state.page)
+  const {
+    goToNextPage,
+    goToPrevPage
+  } = bindActionCreators(actionCreators, dispatch)
+  //console.log(index)
+
   return(
   <View style={styles.container}>
     <View style={styles.containerTop}>
       <Image
         style={styles.avatar}
-        source={{ uri: item.ownerAvatarUrl }}
+        source={{ uri: user.avatarUrl }}
       />
       <View style={{ paddingLeft: 20 }}>
-        <View style={styles.containerName}><Text style={styles.name}>{item.fullName}</Text></View>
+        <View style={styles.containerName}><Text style={styles.name}>{`${user.login}/${item.name}`}</Text></View>
         <View style={styles.containerDescription}><Text style={styles.description}>{item.description}</Text></View>
-        <View style={styles.containerLanguage}><Text style={styles.language}>{item.language}</Text></View>
+        <View style={{borderRadius: 10, maxWidth: 100, alignItems: 'center', backgroundColor: item.languages.nodes.length ? item.languages.nodes[0].color : '#000'}}><Text style={styles.language}>{item.languages.nodes.length ? item.languages.nodes[0].name : 'default'}</Text></View>
       </View>
     </View>
     <View style={styles.containerBottom}>
-      <Stat header='Stars' stat={item.stargazersCount}/>
-      <Stat header='Forks' stat={item.forksCount}/>
-      <Stat header='Reviews' stat={item.reviewCount}/>
-      <Stat header='Rating' stat={item.ratingAverage}/>
+      <Stat header='Stars' stat={item.stargazerCount}/>
+      <Stat header='Forks' stat={item.forks.totalCount}/>
+      <Stat header='Reviews' stat={42}/>
+      <Stat header='Rating' stat={99}/>
     </View>
     <View style={styles.containerButton}>
       <Button
         title='Show Details'
         onPress={() => navigation.navigate('RepositoryDetails', {
-          item: item
+          item: item,
+          user: user
         })}
+        color='royalblue'
       />
+      {
+        index === 10 * currentPage - 1 &&
+        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+          <Button
+            title='Load More'
+            onPress={(e) => {e.preventDefault(); goToNextPage(1);}}
+          />    
+        </View>
+      }
     </View>
   </View>
   )
 };
 
 const RepositoryList = ({ route, navigation }: HomeScreenProps ) => {
+  const dispatch = useDispatch()
+  const currentPage = useSelector((state: State) => state.page)
+  const {
+    goToNextPage,
+    goToPrevPage
+  } = bindActionCreators(actionCreators, dispatch)
+
+  const result = useQuery(ALL_REPOSITORIES)
+
+  if (result.loading) {
+    return (
+      <View>
+        <Text>Loading</Text>
+      </View>
+    )
+  }
+
+  if (result.error) {
+    return (
+      <View>
+        <Text>Loading</Text>
+      </View>
+    )
+  }
+
+  const user: User = {
+    avatarUrl: result.data.user.avatarUrl,
+    bio: result.data.user.bio,
+    name: result.data.user.name,
+    login: result.data.user.login,
+    repositories: result.data.user.repositories.nodes,
+  }
+
+  const repositories = result.data.user.repositories.nodes
+
   const renderItem = ( {item} : ItemProps ) => (
-    <Item item={item} route={route} navigation={navigation}/>
+    <Item item={item} user={user} index={repositories.indexOf(item)} route={route} navigation={navigation}/>
   );
+
+    console.log(currentPage)
 
   return (
     <SafeAreaView>
       <FlatList
-        data={repositories}
+        data={repositories.slice(0, 10 * currentPage)}
         ItemSeparatorComponent={ItemSeparator}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         extraData={navigation}
-      />      
+      />
     </SafeAreaView>
   );
 };
@@ -125,9 +190,10 @@ const RepositoryList = ({ route, navigation }: HomeScreenProps ) => {
 const styles = StyleSheet.create({
   separator: {
     height: 10,
-    backgroundColor: '#6495ED'
+    backgroundColor: '#BBBBBB'
   },
   container: {
+    display: 'flex',
     flexDirection: "column",
   },
   containerTop: {
@@ -142,7 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     height: 60,
     paddingHorizontal: 20,
-    paddingBottom: 20
+    paddingBottom: 20,
   },
   containerButton: {
     justifyContent: 'center',
@@ -185,7 +251,7 @@ const styles = StyleSheet.create({
     color: '#666666'
   },
   containerLanguage: {
-    backgroundColor: '#4C4CFF',
+    backgroundColor: '#000',
     borderRadius: 10,
     maxWidth: 100,
     alignItems: 'center'

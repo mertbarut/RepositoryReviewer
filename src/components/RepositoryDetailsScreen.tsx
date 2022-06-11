@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Button, Image } from 'react-native';
+import { View, Text, StyleSheet, Button, Image, ScrollView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import DetailedStat from './DetailedStat'
@@ -6,23 +6,23 @@ import DetailedStat from './DetailedStat'
 type Props = NativeStackScreenProps<RootStackParamList, 'RepositoryDetails'>;
 
 function RepositoryDetailsScreen({ route, navigation }: Props ) {
-  const { item } = route.params;
+  const { item, user } = route.params;
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.scrollView}>
       <Image
         style={styles.avatar}
-        source={{ uri: item.ownerAvatarUrl }}
-      />          
-      <View style={styles.containerName}><Text style={styles.name}>{item.fullName}</Text></View>
+        source={{ uri: user.avatarUrl }}
+      />
+      <View style={styles.containerName}><Text style={styles.name}>{item.name}</Text></View>
       <View style={styles.containerDescription}><Text style={styles.description}>{item.description}</Text></View>
-      <View style={styles.containerLanguage}><Text style={styles.language}>{item.language}</Text></View>
-      <View style={{flexDirection: 'row', justifyContent: 'space-around'}}>
-        <DetailedStat header='Stars' stat={item.stargazersCount}/>
-        <DetailedStat header='Forks' stat={item.forksCount}/>
-        <DetailedStat header='Reviews' stat={item.reviewCount}/>
-        <DetailedStat header='Rating' stat={item.ratingAverage}/>
+      <View style={styles.containerLanguage}><Text style={styles.language}>{item.languages.nodes.length ? item.languages.nodes[0].name : 'None'}</Text></View>
+      <View style={styles.containerStat}>
+        <DetailedStat header='Stars' stat={item.stargazerCount}/>
+        <DetailedStat header='Forks' stat={item.forks.totalCount}/>
+        <DetailedStat header='Reviews' stat={42}/>
+        <DetailedStat header='Rating' stat={99}/>
       </View>        
-    </View>
+    </ScrollView>
   );
 }
 
@@ -53,7 +53,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     maxHeight: 64,
-    paddingHorizontal: 20
+    marginBottom: 20,
+    flexWrap: 'wrap',
   },
   description: {
     fontWeight: 'normal',
@@ -67,14 +68,27 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     maxWidth: 200,
     maxHeight: 96,
-    alignItems: 'center',
+    marginVertical: 20,
     padding: 10
   },
   language: {
     fontSize: 25,
     fontWeight: 'bold',
     color: '#ffffff',
-  }
+  },
+  containerStat: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    flexGrow: 0,
+    marginTop: 40
+  },
+  scrollView: {
+    marginHorizontal: 20,
+    alignItems: 'center'
+  },
 })
 
 export default RepositoryDetailsScreen

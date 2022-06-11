@@ -8,6 +8,7 @@ import Main from './Main'
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 function HomeScreen({ route, navigation }: HomeScreenProps) {
+
   return (
     <View style={styles.container}>
       <Main navigation={navigation} route={route}/>
