@@ -7,6 +7,9 @@ import Main from './Main'
 import { useDispatch, useSelector } from 'react-redux';
 import { actionCreators, State } from '../state';
 import { bindActionCreators } from '@reduxjs/toolkit';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+//import BottomTabBar from './BottomTabBar';
+
 
 export type HomeScreenProps = NativeStackScreenProps<RootStackParamList, 'Home'>;
 

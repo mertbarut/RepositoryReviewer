@@ -1,15 +1,8 @@
-import Main from './src/components/Main';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, StyleSheet, View, TextInput } from 'react-native';
-
-import AppBar from './src/components/AppBar';
 import HomeScreen from './src/components/HomeScreen';
-import DetailsScreen from './src/components/DetailsScreen';
-
-import type { RepositoryNode, User } from './src/components/Repositories'
 import RepositoryDetailsScreen from './src/components/RepositoryDetailsScreen';
-
+import BottomTabBar from './src/components/BottomTabBar';
 import { ApolloClient, ApolloProvider, HttpLink, InMemoryCache } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 
@@ -17,29 +10,6 @@ import Constants from 'expo-constants';
 
 import { Provider } from 'react-redux'
 import { store } from './src/state/index'
-
-export type HomeScreenParamtype = {
-  itemId: number,
-  otherParams: string
-}
-
-export type DetailScreenParamType = {
-  itemId: number,
-  otherParams: string
-}
-
-export type RepositoryDetailsScreenParamType = {
-  item: RepositoryNode,
-  user: User
-}
-
-export type RootStackParamList = {
-  Home: HomeScreenParamtype;
-  Details: DetailScreenParamType;
-  RepositoryDetails: RepositoryDetailsScreenParamType;
-};
-
-const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 const token = Constants.manifest.extra.token
 
@@ -64,22 +34,7 @@ const App = () => {
     <ApolloProvider client={client}>
       <Provider store={store}>
         <NavigationContainer>
-          <RootStack.Navigator>
-            <RootStack.Screen
-              name='Home'
-              component={HomeScreen}
-              options={{ title: 'Overview' }}
-            />
-            <RootStack.Screen
-              name='Details'
-              component={DetailsScreen}
-            />
-            <RootStack.Screen
-              name='RepositoryDetails'
-              component={RepositoryDetailsScreen}
-              options={{ title: 'Details' }}
-            />
-          </RootStack.Navigator>
+          <BottomTabBar />
         </NavigationContainer>
       </Provider>
     </ApolloProvider>
