@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import { FlatList, View, StyleSheet, Text, SafeAreaView, Image, Button, NativeTouchEvent, NativeSyntheticEvent } from 'react-native';
 import Stat from './Stat';
 import { HomeScreenProps } from './HomeScreen'
@@ -10,6 +10,10 @@ import { gql, useQuery } from '@apollo/client'
 import { useDispatch, useSelector } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { actionCreators, State } from '../state'
+import { RepositoryNode } from '../types/RepositoryNode.type';
+import { User } from '../types/User.type';
+import RepositoryItem from './RepositoryItem';
+
 
 export const ALL_REPOSITORIES = gql`
 query {
@@ -40,37 +44,6 @@ query {
 }
 `
 
-type Fork = {
-  totalCount: number
-}
-
-type Language = {
-  name: string,
-  color: string
-}
-
-type LanguageNode = {
-  nodes: Array<Language>
-}
-
-export type User = {
-  avatarUrl: string,
-  bio: string,
-  name: string,
-  login: string,
-  repositories: Array<RepositoryNode>
-}
-
-export type RepositoryNode = {
-  description: string,
-  id: string,
-  name: string,
-  url: string,
-  stargazerCount: number,
-  forks: Fork,
-  languages: LanguageNode
-}
-
 export interface ItemProps {
   item: RepositoryNode,
   user: User,
@@ -81,60 +54,10 @@ export interface ItemProps {
 
 const ItemSeparator = () => <View style={styles.separator} />;
 
-const Item = ( {item, user, index, navigation, route} : ItemProps ) => {
-  const dispatch = useDispatch()
-  const currentPage = useSelector((state: State) => state.page)
-  const {
-    goToNextPage,
-    goToPrevPage
-  } = bindActionCreators(actionCreators, dispatch)
-  //console.log(index)
-
-  return(
-  <View style={styles.container}>
-    <View style={styles.containerTop}>
-      <Image
-        style={styles.avatar}
-        source={{ uri: user.avatarUrl }}
-      />
-      <View style={{ paddingLeft: 20 }}>
-        <View style={styles.containerName}><Text style={styles.name}>{`${user.login}/${item.name}`}</Text></View>
-        <View style={styles.containerDescription}><Text style={styles.description}>{item.description}</Text></View>
-        <View style={{borderRadius: 10, maxWidth: 100, alignItems: 'center', backgroundColor: item.languages.nodes.length ? item.languages.nodes[0].color : '#000'}}><Text style={styles.language}>{item.languages.nodes.length ? item.languages.nodes[0].name : 'default'}</Text></View>
-      </View>
-    </View>
-    <View style={styles.containerBottom}>
-      <Stat header='Stars' stat={item.stargazerCount}/>
-      <Stat header='Forks' stat={item.forks.totalCount}/>
-      <Stat header='Reviews' stat={42}/>
-      <Stat header='Rating' stat={99}/>
-    </View>
-    <View style={styles.containerButton}>
-      <Button
-        title='Show Details'
-        onPress={() => navigation.navigate('RepositoryDetails', {
-          item: item,
-          user: user
-        })}
-        color='royalblue'
-      />
-      {
-        index === 10 * currentPage - 1 &&
-        <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
-          <Button
-            title='Load More'
-            onPress={(e) => {e.preventDefault(); goToNextPage(1);}}
-          />    
-        </View>
-      }
-    </View>
-  </View>
-  )
-};
-
 const RepositoryList = ({ route, navigation }: HomeScreenProps ) => {
   const dispatch = useDispatch()
   const currentPage = useSelector((state: State) => state.page)
+  const query = useSelector((state: State) => state.searchQuery)
   const {
     goToNextPage,
     goToPrevPage
@@ -166,22 +89,28 @@ const RepositoryList = ({ route, navigation }: HomeScreenProps ) => {
     repositories: result.data.user.repositories.nodes,
   }
 
-  const repositories = result.data.user.repositories.nodes
+  const repositories : Array<RepositoryNode> = result.data.user.repositories.nodes
 
   const renderItem = ( {item} : ItemProps ) => (
-    <Item item={item} user={user} index={repositories.indexOf(item)} route={route} navigation={navigation}/>
+    <RepositoryItem item={item} user={user} index={repositories.indexOf(item)} route={route} navigation={navigation}/>
   );
-
-    console.log(currentPage)
 
   return (
     <SafeAreaView>
-      <FlatList
-        data={repositories.slice(0, 10 * currentPage)}
+      <FlatList    
+        data={repositories
+          .filter(r =>
+            r.name.toLowerCase().includes(query.toLowerCase()) || (
+              r.languages.nodes.length !== 0 && r.languages.nodes[0].name.toLowerCase().includes(query.toLowerCase())
+            )
+          )
+          .slice(0, 10 * currentPage)}
         ItemSeparatorComponent={ItemSeparator}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         extraData={navigation}
+        initialNumToRender={3}
+        refreshing={true}
       />
     </SafeAreaView>
   );
@@ -189,7 +118,7 @@ const RepositoryList = ({ route, navigation }: HomeScreenProps ) => {
 
 const styles = StyleSheet.create({
   separator: {
-    height: 10,
+    height: 2,
     backgroundColor: '#BBBBBB'
   },
   container: {

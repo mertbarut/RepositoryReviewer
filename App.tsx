@@ -1,6 +1,7 @@
 import Main from './src/components/Main';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Text, StyleSheet, View, TextInput } from 'react-native';
 
 import AppBar from './src/components/AppBar';
 import HomeScreen from './src/components/HomeScreen';
